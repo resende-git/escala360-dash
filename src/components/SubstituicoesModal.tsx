@@ -32,7 +32,7 @@ export function SubstituicoesModal({ open, onOpenChange }: SubstituicoesModalPro
 
   const aprovarMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("aprovar_substituicao", { id_substituicao: id });
+      const { error } = await supabase.rpc("aprovar_substituicao", { id_da_substituicao: id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -54,7 +54,7 @@ export function SubstituicoesModal({ open, onOpenChange }: SubstituicoesModalPro
 
   const rejeitarMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("rejeitar_substituicao", { id_substituicao: id });
+      const { error } = await supabase.rpc("rejeitar_substituicao", { id_da_substituicao: id });
       if (error) throw error;
     },
     onSuccess: () => {

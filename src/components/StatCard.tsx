@@ -7,9 +7,10 @@ interface StatCardProps {
   icon: LucideIcon;
   variant: "destructive" | "warning" | "default";
   loading?: boolean;
+  onClick?: () => void;
 }
 
-export function StatCard({ title, value, icon: Icon, variant, loading }: StatCardProps) {
+export function StatCard({ title, value, icon: Icon, variant, loading, onClick }: StatCardProps) {
   const variantClasses = {
     destructive: "bg-destructive/10 border-destructive/50",
     warning: "bg-warning/10 border-warning/50",
@@ -23,7 +24,10 @@ export function StatCard({ title, value, icon: Icon, variant, loading }: StatCar
   };
 
   return (
-    <Card className={`${variantClasses[variant]} transition-all hover:shadow-lg`}>
+    <Card 
+      className={`${variantClasses[variant]} transition-all hover:shadow-lg ${onClick ? 'cursor-pointer hover:scale-105' : ''}`}
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}

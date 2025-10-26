@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, ClipboardList, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatCard } from "@/components/StatCard";
 import { OverloadTable } from "@/components/OverloadTable";
 import { ScheduleCalendar } from "@/components/ScheduleCalendar";
+import { SubstituicoesModal } from "@/components/SubstituicoesModal";
 import { ProfissionalSobrecarga, Escala } from "@/types/supabase";
 
 const Index = () => {
+  const [modalOpen, setModalOpen] = useState(false);
   // Query para plantões críticos (48h)
   const { data: plantoesCriticos = [], isLoading: loadingCriticos } = useQuery({
     queryKey: ["plantoes-criticos"],
@@ -79,6 +82,7 @@ const Index = () => {
               icon={ClipboardList}
               variant="warning"
               loading={loadingSubstituicoes}
+              onClick={() => setModalOpen(true)}
             />
             <StatCard
               title="Profissionais em Sobrecarga"
@@ -96,6 +100,8 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      <SubstituicoesModal open={modalOpen} onOpenChange={setModalOpen} />
     </div>
   );
 };

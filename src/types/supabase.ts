@@ -26,3 +26,10 @@ export interface Escala {
   plantoes: Plantao;
   profissionais: Profissional;
 }
+
+export interface SubstituicaoDetalhe {
+  id_substituicao: string;
+  nome_solicitante: string;
+  nome_substituto: string;
+  data_plantao: string;
+}

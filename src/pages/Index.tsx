@@ -6,10 +6,12 @@ import { StatCard } from "@/components/StatCard";
 import { OverloadTable } from "@/components/OverloadTable";
 import { ScheduleCalendar } from "@/components/ScheduleCalendar";
 import { SubstituicoesModal } from "@/components/SubstituicoesModal";
+import { PlantoesCriticosModal } from "@/components/PlantoesCriticosModal";
 import { ProfissionalSobrecarga, Escala } from "@/types/supabase";
 
 const Index = () => {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSubstituicoesOpen, setModalSubstituicoesOpen] = useState(false);
+  const [modalPlantoesCriticosOpen, setModalPlantoesCriticosOpen] = useState(false);
   // Query para plantões críticos (48h)
   const { data: plantoesCriticos = [], isLoading: loadingCriticos } = useQuery({
     queryKey: ["plantoes-criticos"],
@@ -75,6 +77,7 @@ const Index = () => {
               icon={AlertCircle}
               variant="destructive"
               loading={loadingCriticos}
+              onClick={() => setModalPlantoesCriticosOpen(true)}
             />
             <StatCard
               title="Substituições Pendentes"
@@ -82,7 +85,7 @@ const Index = () => {
               icon={ClipboardList}
               variant="warning"
               loading={loadingSubstituicoes}
-              onClick={() => setModalOpen(true)}
+              onClick={() => setModalSubstituicoesOpen(true)}
             />
             <StatCard
               title="Profissionais em Sobrecarga"
@@ -101,7 +104,8 @@ const Index = () => {
         </div>
       </main>
 
-      <SubstituicoesModal open={modalOpen} onOpenChange={setModalOpen} />
+      <SubstituicoesModal open={modalSubstituicoesOpen} onOpenChange={setModalSubstituicoesOpen} />
+      <PlantoesCriticosModal open={modalPlantoesCriticosOpen} onOpenChange={setModalPlantoesCriticosOpen} />
     </div>
   );
 };

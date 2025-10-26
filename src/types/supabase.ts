@@ -33,3 +33,18 @@ export interface SubstituicaoDetalhe {
   nome_substituto: string;
   data_plantao: string;
 }
+
+export interface PlantaoCritico {
+  id: string;
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+  tipo: string;
+}
+
+export interface ProfissionalSugerido {
+  id_profissional: string;
+  nome: string;
+  cargo: string;
+  horas_na_semana: number;
+}

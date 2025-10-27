@@ -25,10 +25,18 @@ export function PlantoesCriticosModal({ open, onOpenChange }: PlantoesCriticosMo
   const { data: plantoesCriticos = [], isLoading } = useQuery({
     queryKey: ["plantoes-criticos-detalhes"],
     queryFn: async () => {
+      console.log("Buscando plantões críticos da view...");
       const { data, error } = await supabase
         .from("plantoes_criticos")
         .select("*");
-      if (error) throw error;
+      
+      console.log("Dados retornados:", data);
+      console.log("Erro:", error);
+      
+      if (error) {
+        console.error("Erro ao buscar plantões críticos:", error);
+        throw error;
+      }
       return (data || []) as PlantaoCritico[];
     },
     enabled: open,

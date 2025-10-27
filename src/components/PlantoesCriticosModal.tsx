@@ -25,18 +25,8 @@ export function PlantoesCriticosModal({ open, onOpenChange }: PlantoesCriticosMo
   const { data: plantoesCriticos = [], isLoading } = useQuery({
     queryKey: ["plantoes-criticos-detalhes"],
     queryFn: async () => {
-      console.log("Buscando plantões críticos da view...");
-      const { data, error } = await supabase
-        .from("plantoes_criticos")
-        .select("*");
-      
-      console.log("Dados retornados:", data);
-      console.log("Erro:", error);
-      
-      if (error) {
-        console.error("Erro ao buscar plantões críticos:", error);
-        throw error;
-      }
+      const { data, error } = await supabase.rpc("get_plantoes_vagos_48h");
+      if (error) throw error;
       return (data || []) as PlantaoCritico[];
     },
     enabled: open,
@@ -100,11 +90,10 @@ export function PlantoesCriticosModal({ open, onOpenChange }: PlantoesCriticosMo
                       <Clock className="h-4 w-4" />
                       {plantao.hora_inicio} - {plantao.hora_fim}
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{plantao.tipo}</span>
+                    <div className="flex justify-end">
                       <Button
                         size="sm"
-                        onClick={() => setPlantaoSelecionado(plantao.id)}
+                        onClick={() => setPlantaoSelecionado(String(plantao.id))}
                         className="gap-2"
                       >
                         <UserPlus className="h-4 w-4" />

@@ -35,11 +35,12 @@ export interface SubstituicaoDetalhe {
 }
 
 export interface PlantaoCritico {
-  id: string;
+  id: number;
   data: string;
   hora_inicio: string;
   hora_fim: string;
-  tipo: string;
+  id_funcao: number;
+  id_local: number;
 }
 
 export interface ProfissionalSugerido {

@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -87,6 +88,9 @@ export function SubstituicoesModal({ open, onOpenChange }: SubstituicoesModalPro
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Gerenciar Substituições</DialogTitle>
+          <DialogDescription>
+            Aprove ou recuse as solicitações de substituição de plantão
+          </DialogDescription>
         </DialogHeader>
         
         {isLoading ? (

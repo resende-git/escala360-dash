@@ -50,7 +50,8 @@ export function QuickActions() {
           data: plantaoData.data,
           hora_inicio: plantaoData.hora_inicio,
           hora_fim: plantaoData.hora_fim,
-          status: "vago",
+          id_funcao: plantaoData.id_funcao || null,
+          id_local: plantaoData.id_local || null,
         },
       ]);
 
@@ -77,10 +78,10 @@ export function QuickActions() {
   };
 
   const handleAdicionarProfissional = async () => {
-    if (!profissionalData.nome || !profissionalData.cargo) {
+    if (!profissionalData.nome || !profissionalData.cargo || !profissionalData.email) {
       toast({
         title: "Campos obrigatórios",
-        description: "Por favor, preencha nome e cargo.",
+        description: "Por favor, preencha nome, cargo e email.",
         variant: "destructive",
       });
       return;
@@ -92,6 +93,7 @@ export function QuickActions() {
         {
           nome: profissionalData.nome,
           cargo: profissionalData.cargo,
+          email: profissionalData.email,
         },
       ]);
 
@@ -124,24 +126,46 @@ export function QuickActions() {
     });
   };
 
-  const handleExportarRelatorio = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Relatório de Plantões\n"
-      + "Data,Hora Início,Hora Fim,Status\n"
-      + "Exportado em: " + new Date().toLocaleString();
+  const handleExportarRelatorio = async () => {
+    try {
+      const { data: escalas, error } = await supabase
+        .from("escalas")
+        .select("*, plantoes(*), profissionais(nome, cargo)")
+        .eq("status", "ativo");
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `relatorio_plantoes_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      if (error) throw error;
 
-    toast({
-      title: "Relatório exportado!",
-      description: "O arquivo CSV foi baixado com sucesso.",
-    });
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Profissional,Cargo,Data,Horário Início,Horário Fim\n";
+      
+      escalas?.forEach((escala: any) => {
+        const profissional = escala.profissionais?.nome || "N/A";
+        const cargo = escala.profissionais?.cargo || "N/A";
+        const data = escala.plantoes?.data || "N/A";
+        const inicio = escala.plantoes?.hora_inicio || "N/A";
+        const fim = escala.plantoes?.hora_fim || "N/A";
+        csvContent += `${profissional},${cargo},${data},${inicio},${fim}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `relatorio_escalas_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Relatório exportado!",
+        description: "O arquivo CSV foi baixado com sucesso.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao exportar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -237,6 +261,16 @@ export function QuickActions() {
                     <SelectItem value="Técnico">Técnico</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="profissional@hospital.com"
+                  value={profissionalData.email}
+                  onChange={(e) => setProfissionalData({ ...profissionalData, email: e.target.value })}
+                />
               </div>
               <Button onClick={handleAdicionarProfissional} disabled={isLoading} className="w-full">
                 {isLoading ? "Adicionando..." : "Adicionar Profissional"}

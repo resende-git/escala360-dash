@@ -15,7 +15,9 @@ export function QuickActions() {
   const queryClient = useQueryClient();
   const [openPlantao, setOpenPlantao] = useState(false);
   const [openProfissional, setOpenProfissional] = useState(false);
+  const [openPreview, setOpenPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [previewData, setPreviewData] = useState<any[]>([]);
 
   // Estados para criar plantão
   const [plantaoData, setPlantaoData] = useState({
@@ -126,19 +128,36 @@ export function QuickActions() {
     });
   };
 
-  const handleExportarRelatorio = async () => {
+  const handlePreviewRelatorio = async () => {
+    setIsLoading(true);
     try {
       const { data: escalas, error } = await supabase
         .from("escalas")
         .select("*, plantoes(*), profissionais(nome, cargo)")
-        .eq("status", "ativo");
+        .eq("status", "ativo")
+        .order("data_alocacao", { ascending: false });
 
       if (error) throw error;
 
+      setPreviewData(escalas || []);
+      setOpenPreview(true);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao carregar dados",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmarExportacao = () => {
+    try {
       let csvContent = "data:text/csv;charset=utf-8,";
       csvContent += "Profissional,Cargo,Data,Horário Início,Horário Fim\n";
       
-      escalas?.forEach((escala: any) => {
+      previewData.forEach((escala: any) => {
         const profissional = escala.profissionais?.nome || "N/A";
         const cargo = escala.profissionais?.cargo || "N/A";
         const data = escala.plantoes?.data || "N/A";
@@ -155,6 +174,7 @@ export function QuickActions() {
       link.click();
       document.body.removeChild(link);
 
+      setOpenPreview(false);
       toast({
         title: "Relatório exportado!",
         description: "O arquivo CSV foi baixado com sucesso.",
@@ -291,11 +311,63 @@ export function QuickActions() {
         <Button 
           variant="outline" 
           className="justify-start gap-2"
-          onClick={handleExportarRelatorio}
+          onClick={handlePreviewRelatorio}
+          disabled={isLoading}
         >
           <FileText className="h-4 w-4" />
-          Exportar Relatório
+          {isLoading ? "Carregando..." : "Exportar Relatório"}
         </Button>
+
+        <Dialog open={openPreview} onOpenChange={setOpenPreview}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Preview do Relatório</DialogTitle>
+              <DialogDescription>
+                Visualize os dados antes de exportar. Total de registros: {previewData.length}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="border rounded-md">
+              <table className="w-full">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="text-left p-2 border-b">Profissional</th>
+                    <th className="text-left p-2 border-b">Cargo</th>
+                    <th className="text-left p-2 border-b">Data</th>
+                    <th className="text-left p-2 border-b">Início</th>
+                    <th className="text-left p-2 border-b">Fim</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewData.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center p-4 text-muted-foreground">
+                        Nenhum dado encontrado
+                      </td>
+                    </tr>
+                  ) : (
+                    previewData.map((escala: any, index: number) => (
+                      <tr key={index} className="border-b hover:bg-muted/50">
+                        <td className="p-2">{escala.profissionais?.nome || "N/A"}</td>
+                        <td className="p-2">{escala.profissionais?.cargo || "N/A"}</td>
+                        <td className="p-2">{escala.plantoes?.data || "N/A"}</td>
+                        <td className="p-2">{escala.plantoes?.hora_inicio || "N/A"}</td>
+                        <td className="p-2">{escala.plantoes?.hora_fim || "N/A"}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex gap-2 justify-end pt-4">
+              <Button variant="outline" onClick={() => setOpenPreview(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleConfirmarExportacao} disabled={previewData.length === 0}>
+                Confirmar Exportação
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

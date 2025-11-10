@@ -7,10 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Escala } from "@/types/supabase";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { MessageCircle } from "lucide-react";
+import { abrirWhatsApp } from "@/lib/utils";
 
 interface ScheduleCalendarProps {
   data: Escala[];
@@ -79,9 +82,20 @@ export function ScheduleCalendar({ data, loading }: ScheduleCalendarProps) {
           <DialogHeader>
             <DialogTitle>Detalhes do Plantão</DialogTitle>
             <DialogDescription className="space-y-2 pt-4">
-              <div>
-                <span className="font-semibold">Profissional:</span>{" "}
-                {selectedEvent?.profissionais.nome}
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-semibold">Profissional:</span>{" "}
+                  {selectedEvent?.profissionais.nome}
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => abrirWhatsApp(selectedEvent?.profissionais.telefone)}
+                  disabled={!selectedEvent?.profissionais.telefone}
+                  className="h-8 w-8"
+                >
+                  <MessageCircle className="h-4 w-4 text-green-600" />
+                </Button>
               </div>
               <div>
                 <span className="font-semibold">Cargo:</span>{" "}

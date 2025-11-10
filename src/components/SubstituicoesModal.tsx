@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { MessageCircle } from "lucide-react";
+import { abrirWhatsApp } from "@/lib/utils";
 
 interface SubstituicoesModalProps {
   open: boolean;
@@ -113,11 +115,33 @@ export function SubstituicoesModal({ open, onOpenChange }: SubstituicoesModalPro
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Solicitante:</span>
-                    <span className="font-medium">{sub.nome_solicitante}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{sub.nome_solicitante}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => abrirWhatsApp(sub.telefone_solicitante)}
+                        disabled={!sub.telefone_solicitante}
+                        className="h-8 w-8"
+                      >
+                        <MessageCircle className="h-4 w-4 text-green-600" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Substituto:</span>
-                    <span className="font-medium">{sub.nome_substituto}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{sub.nome_substituto}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => abrirWhatsApp(sub.telefone_substituto)}
+                        disabled={!sub.telefone_substituto}
+                        className="h-8 w-8"
+                      >
+                        <MessageCircle className="h-4 w-4 text-green-600" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Data do Plantão:</span>

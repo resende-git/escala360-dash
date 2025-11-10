@@ -10,12 +10,14 @@ export interface Profissional {
   id: string;
   nome: string;
   cargo: string;
+  telefone?: string;
 }
 
 export interface ProfissionalSobrecarga {
   nome: string;
   cargo: string;
   horas_na_semana: number;
+  telefone?: string;
 }
 
 export interface Escala {
@@ -32,6 +34,8 @@ export interface SubstituicaoDetalhe {
   nome_solicitante: string;
   nome_substituto: string;
   data_plantao: string;
+  telefone_solicitante?: string;
+  telefone_substituto?: string;
 }
 
 export interface PlantaoCritico {

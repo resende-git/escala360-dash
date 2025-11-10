@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, ClipboardList, Users, Calendar, LayoutDashboard, UserCog, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AlertCircle, ClipboardList, Users, Calendar, LayoutDashboard, UserCog, Search, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { StatCard } from "@/components/StatCard";
 import { OverloadTable } from "@/components/OverloadTable";
 import { ScheduleCalendar } from "@/components/ScheduleCalendar";
@@ -16,8 +18,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
   const [modalSubstituicoesOpen, setModalSubstituicoesOpen] = useState(false);
   const [modalPlantoesCriticosOpen, setModalPlantoesCriticosOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("visao-geral");
@@ -64,6 +70,23 @@ const Index = () => {
     },
   });
 
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Erro ao sair",
+        description: "Não foi possível fazer logout. Tente novamente.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso.",
+      });
+      navigate("/login");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -94,6 +117,15 @@ const Index = () => {
                 <span className="font-semibold">{substituicoesPendentes.length}</span>
                 <span className="hidden sm:inline">Pendentes</span>
               </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden md:inline">Sair</span>
+              </Button>
             </div>
           </div>
         </div>

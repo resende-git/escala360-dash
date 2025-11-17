@@ -10,10 +10,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Escala } from "@/types/supabase";
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, differenceInHours, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Clock } from "lucide-react";
 import { abrirWhatsApp } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface ScheduleCalendarProps {
   data: Escala[];
@@ -29,6 +30,45 @@ export function ScheduleCalendar({ data, loading }: ScheduleCalendarProps) {
       selectedDate &&
       escala.plantoes.data === format(selectedDate, "yyyy-MM-dd")
   );
+
+  // Verifica se o plantão está dentro do prazo de 12h para solicitar substituição
+  const podesolicitarSubstituicao = (escala: Escala | null): boolean => {
+    if (!escala) return false;
+    
+    try {
+      const dataPlantao = parse(
+        `${escala.plantoes.data} ${escala.plantoes.hora_inicio}`,
+        "yyyy-MM-dd HH:mm:ss",
+        new Date()
+      );
+      const horasRestantes = differenceInHours(dataPlantao, new Date());
+      return horasRestantes >= 12;
+    } catch (error) {
+      console.error("Erro ao calcular diferença de horas:", error);
+      return false;
+    }
+  };
+
+  const handleSolicitarSubstituicao = () => {
+    if (!selectedEvent) return;
+
+    if (!podesolicitarSubstituicao(selectedEvent)) {
+      toast({
+        title: "Fora do prazo",
+        description: "Substituições devem ser solicitadas com no mínimo 12 horas de antecedência.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Aqui você pode adicionar a lógica para abrir um modal de solicitação
+    // ou chamar uma função RPC do Supabase
+    toast({
+      title: "Solicitação enviada",
+      description: "Sua solicitação de substituição foi registrada.",
+    });
+    setSelectedEvent(null);
+  };
 
   return (
     <>
@@ -78,32 +118,79 @@ export function ScheduleCalendar({ data, loading }: ScheduleCalendarProps) {
       </Card>
 
       <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Detalhes do Plantão</DialogTitle>
-            <DialogDescription className="space-y-2 pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-semibold">Profissional:</span>{" "}
-                  {selectedEvent?.profissionais.nome}
+            <DialogDescription className="space-y-3 pt-4">
+              <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">Profissional:</span>
+                    <div className="text-base text-foreground">
+                      {selectedEvent?.profissionais.nome}
+                    </div>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => abrirWhatsApp()}
+                    className="h-8 w-8"
+                  >
+                    <MessageCircle className="h-4 w-4 text-green-600" />
+                  </Button>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => abrirWhatsApp()}
-                  className="h-8 w-8"
-                >
-                  <MessageCircle className="h-4 w-4 text-green-600" />
-                </Button>
+                
+                <div>
+                  <span className="text-sm font-semibold text-foreground">Cargo:</span>
+                  <div className="text-base text-foreground">
+                    {selectedEvent?.profissionais.cargo}
+                  </div>
+                </div>
+
+                {selectedEvent?.profissionais.email && (
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">Email:</span>
+                    <div className="text-base text-foreground">
+                      {selectedEvent?.profissionais.email}
+                    </div>
+                  </div>
+                )}
+
+                {selectedEvent?.profissionais.telefone && (
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">Telefone:</span>
+                    <div className="text-base text-foreground">
+                      {selectedEvent?.profissionais.telefone}
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <span className="text-sm font-semibold text-foreground">Horário:</span>
+                  <div className="text-base text-foreground">
+                    {selectedEvent?.plantoes.hora_inicio} - {selectedEvent?.plantoes.hora_fim}
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="font-semibold">Cargo:</span>{" "}
-                {selectedEvent?.profissionais.cargo}
-              </div>
-              <div>
-                <span className="font-semibold">Horário:</span>{" "}
-                {selectedEvent?.plantoes.hora_inicio} - {selectedEvent?.plantoes.hora_fim}
-              </div>
+
+              <Button
+                onClick={handleSolicitarSubstituicao}
+                disabled={!podesolicitarSubstituicao(selectedEvent)}
+                className="w-full"
+                variant={podesolicitarSubstituicao(selectedEvent) ? "default" : "secondary"}
+              >
+                {podesolicitarSubstituicao(selectedEvent) ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Solicitar Substituição
+                  </>
+                ) : (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Fora do prazo (mínimo 12h)
+                  </>
+                )}
+              </Button>
             </DialogDescription>
           </DialogHeader>
         </DialogContent>

@@ -120,8 +120,7 @@ export function SubstituicoesModal({ open, onOpenChange }: SubstituicoesModalPro
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => abrirWhatsApp(sub.telefone_solicitante)}
-                        disabled={!sub.telefone_solicitante}
+                        onClick={() => abrirWhatsApp()}
                         className="h-8 w-8"
                       >
                         <MessageCircle className="h-4 w-4 text-green-600" />
@@ -135,8 +134,7 @@ export function SubstituicoesModal({ open, onOpenChange }: SubstituicoesModalPro
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => abrirWhatsApp(sub.telefone_substituto)}
-                        disabled={!sub.telefone_substituto}
+                        onClick={() => abrirWhatsApp()}
                         className="h-8 w-8"
                       >
                         <MessageCircle className="h-4 w-4 text-green-600" />

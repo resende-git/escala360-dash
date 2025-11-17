@@ -11,6 +11,7 @@ export interface Profissional {
   nome: string;
   cargo: string;
   telefone?: string;
+  email?: string;
 }
 
 export interface ProfissionalSobrecarga {

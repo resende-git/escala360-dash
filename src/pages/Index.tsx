@@ -63,7 +63,7 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escalas")
-        .select("*, plantoes(*), profissionais(nome, cargo)")
+        .select("*, plantoes(*), profissionais(nome, cargo, telefone, email)")
         .eq("status", "ativo");
       if (error) throw error;
       return (data || []) as Escala[];

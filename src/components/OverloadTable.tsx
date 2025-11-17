@@ -59,8 +59,7 @@ export function OverloadTable({ data, loading }: OverloadTableProps) {
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => abrirWhatsApp(profissional.telefone)}
-                        disabled={!profissional.telefone}
+                        onClick={() => abrirWhatsApp()}
                         className="h-8 w-8"
                       >
                         <MessageCircle className="h-4 w-4 text-green-600" />

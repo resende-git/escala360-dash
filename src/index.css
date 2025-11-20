@@ -8,38 +8,57 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 3%;
-    --foreground: 0 0% 98%;
+    /* Medical theme - Professional healthcare colors */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
 
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
 
-    --primary: 160 84% 39%;
+    /* Medical blue - Trust, professionalism */
+    --primary: 210 85% 48%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 210 85% 42%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
+    /* Light medical gray */
+    --secondary: 210 15% 95%;
+    --secondary-foreground: 215 25% 25%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
+    /* Muted tones */
+    --muted: 210 15% 96%;
+    --muted-foreground: 215 15% 45%;
 
-    --accent: 160 84% 45%;
+    /* Health green accent */
+    --accent: 145 70% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    /* Medical alerts - red for critical */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%;
+    /* Medical warnings - amber */
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 160 84% 39%;
+    /* Borders and inputs - soft medical tones */
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 210 85% 48%;
 
-    --radius: 0.5rem;
+    /* Gradients for medical feel */
+    --gradient-medical: linear-gradient(135deg, hsl(210 85% 48%), hsl(210 85% 58%));
+    --gradient-health: linear-gradient(135deg, hsl(145 70% 45%), hsl(145 70% 55%));
+    --gradient-subtle: linear-gradient(180deg, hsl(210 20% 98%), hsl(210 15% 96%));
+
+    /* Shadows with medical blue tint */
+    --shadow-medical: 0 4px 12px hsl(210 85% 48% / 0.12);
+    --shadow-card: 0 2px 8px hsl(210 30% 20% / 0.08);
+    --shadow-elevated: 0 8px 24px hsl(210 30% 20% / 0.12);
+
+    --radius: 0.75rem;
   }
 }
 
@@ -50,5 +69,30 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+}
+
+@layer components {
+  .medical-card {
+    @apply bg-card border border-border rounded-lg shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)];
+  }
+
+  .medical-badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .medical-gradient {
+    background: var(--gradient-medical);
+  }
+
+  .health-gradient {
+    background: var(--gradient-health);
   }
 }

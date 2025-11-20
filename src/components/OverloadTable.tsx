@@ -60,9 +60,9 @@ export function OverloadTable({ data, loading }: OverloadTableProps) {
                         size="icon"
                         variant="ghost"
                         onClick={() => abrirWhatsApp()}
-                        className="h-8 w-8"
+                        className="h-8 w-8 hover:bg-accent/10"
                       >
-                        <MessageCircle className="h-4 w-4 text-green-600" />
+                        <MessageCircle className="h-4 w-4 text-accent" />
                       </Button>
                     </TableCell>
                   </TableRow>

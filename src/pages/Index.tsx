@@ -88,16 +88,21 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
+      <header className="border-b-2 border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-card">
+        <div className="container mx-auto px-6 py-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Escala360
-              </h1>
-              <p className="text-sm text-muted-foreground">Dashboard de Gestão de Plantões</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center shadow-medical">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                  Escala360
+                </h1>
+                <p className="text-sm text-muted-foreground font-medium">Sistema de Gestão de Plantões Médicos</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="relative hidden sm:block">
@@ -107,15 +112,15 @@ const Index = () => {
                   className="w-[200px] pl-9"
                 />
               </div>
-              <Badge variant="destructive" className="gap-1.5 px-3 py-1.5">
-                <AlertCircle className="h-3.5 w-3.5" />
-                <span className="font-semibold">{plantoesCriticos.length}</span>
-                <span className="hidden sm:inline">Críticos</span>
+              <Badge variant="destructive" className="gap-2 px-4 py-2 shadow-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span className="font-bold text-sm">{plantoesCriticos.length}</span>
+                <span className="hidden sm:inline font-semibold">Críticos</span>
               </Badge>
-              <Badge variant="default" className="gap-1.5 px-3 py-1.5 bg-primary">
-                <ClipboardList className="h-3.5 w-3.5" />
-                <span className="font-semibold">{substituicoesPendentes.length}</span>
-                <span className="hidden sm:inline">Pendentes</span>
+              <Badge variant="default" className="gap-2 px-4 py-2">
+                <ClipboardList className="h-4 w-4" />
+                <span className="font-bold text-sm">{substituicoesPendentes.length}</span>
+                <span className="hidden sm:inline font-semibold">Pendentes</span>
               </Badge>
               <Button 
                 variant="outline" 
@@ -133,8 +138,8 @@ const Index = () => {
 
       {/* Main Content with Tabs */}
       <main className="container mx-auto px-6 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto bg-card border-2 border-border p-1.5 shadow-card">
             <TabsTrigger value="visao-geral" className="flex items-center justify-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Visão Geral</span>

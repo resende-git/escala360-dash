@@ -10,14 +10,14 @@ DROP FUNCTION IF EXISTS get_plantoes_vagos_48h();
 CREATE OR REPLACE FUNCTION get_plantoes_vagos_48h()
 RETURNS TABLE (
   id uuid,
-  data date,
+  "data" date,
   hora_inicio time,
   hora_fim time,
   id_funcao integer,
   id_local integer,
   vagas integer,
   vagas_ocupadas bigint
-) 
+)
 LANGUAGE sql
 STABLE
 AS $$
@@ -120,8 +120,8 @@ RETURNS TABLE (
   data_plantao date,
   hora_inicio time,
   hora_fim time,
-  status text
-) 
+  "status" text
+)
 LANGUAGE sql
 STABLE
 AS $$

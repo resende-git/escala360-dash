@@ -9,7 +9,7 @@ DROP FUNCTION IF EXISTS get_plantoes_vagos_48h();
 
 CREATE OR REPLACE FUNCTION get_plantoes_vagos_48h()
 RETURNS TABLE (
-  id uuid,
+  id integer,
   "data" date,
   hora_inicio time,
   hora_fim time,
@@ -113,8 +113,8 @@ DROP FUNCTION IF EXISTS get_substituicoes_pendentes();
 
 CREATE OR REPLACE FUNCTION get_substituicoes_pendentes()
 RETURNS TABLE (
-  id uuid,
-  plantao_id uuid,
+  id integer,
+  plantao_id integer,
   profissional_solicitante_nome text,
   profissional_substituto_nome text,
   data_plantao date,

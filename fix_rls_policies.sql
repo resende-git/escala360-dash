@@ -32,7 +32,7 @@ AS $$
     COALESCE(
       (SELECT COUNT(*) 
        FROM escalas e 
-       WHERE e.plantao_id = p.id 
+       WHERE e.id_plantao = p.id 
          AND e.status = 'ativo'
       ), 0
     ) AS vagas_ocupadas
@@ -44,7 +44,7 @@ AS $$
     AND (
       SELECT COUNT(*) 
       FROM escalas e 
-      WHERE e.plantao_id = p.id 
+      WHERE e.id_plantao = p.id 
         AND e.status = 'ativo'
     ) < p.vagas
   ORDER BY p.data, p.hora_inicio;
@@ -86,8 +86,8 @@ AS $$
           END
       ) AS total_horas
     FROM profissionais prof
-    INNER JOIN escalas e ON e.profissional_id = prof.id
-    INNER JOIN plantoes pl ON pl.id = e.plantao_id
+    INNER JOIN escalas e ON e.id_profissional = prof.id
+    INNER JOIN plantoes pl ON pl.id = e.id_plantao
     CROSS JOIN inicio_semana
     CROSS JOIN fim_semana
     WHERE 
@@ -127,7 +127,7 @@ STABLE
 AS $$
   SELECT 
     s.id,
-    s.plantao_id,
+    s.id_plantao AS plantao_id,
     ps.nome AS profissional_solicitante_nome,
     psu.nome AS profissional_substituto_nome,
     p.data AS data_plantao,
@@ -135,9 +135,9 @@ AS $$
     p.hora_fim,
     s.status
   FROM substituicoes s
-  INNER JOIN profissionais ps ON ps.id = s.profissional_solicitante_id
-  INNER JOIN profissionais psu ON psu.id = s.profissional_substituto_id
-  INNER JOIN plantoes p ON p.id = s.plantao_id
+  INNER JOIN profissionais ps ON ps.id = s.id_profissional_solicitante
+  INNER JOIN profissionais psu ON psu.id = s.id_profissional_substituto
+  INNER JOIN plantoes p ON p.id = s.id_plantao
   WHERE s.status = 'pendente'
   ORDER BY p.data, p.hora_inicio;
 $$;

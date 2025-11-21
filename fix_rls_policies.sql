@@ -1,117 +1,158 @@
--- Script para corrigir políticas RLS e permitir visualização dos dados
+-- Script para corrigir as funções RPC com os nomes corretos das colunas
 -- Execute este script no SQL Editor do Supabase
 
--- Habilitar RLS em todas as tabelas (se ainda não estiver habilitado)
-ALTER TABLE profissionais ENABLE ROW LEVEL SECURITY;
-ALTER TABLE plantoes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE escalas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE substituicoes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE auditoria ENABLE ROW LEVEL SECURITY;
+-- =============================================
+-- 1. FUNÇÃO: get_plantoes_vagos_48h
+-- Retorna plantões que precisam de alocação nas próximas 48 horas
+-- =============================================
+DROP FUNCTION IF EXISTS get_plantoes_vagos_48h();
 
--- Remover políticas antigas (se existirem)
-DROP POLICY IF EXISTS "Permitir leitura pública de profissionais" ON profissionais;
-DROP POLICY IF EXISTS "Permitir leitura pública de plantões" ON plantoes;
-DROP POLICY IF EXISTS "Permitir leitura pública de escalas" ON escalas;
-DROP POLICY IF EXISTS "Permitir leitura pública de substituições" ON substituicoes;
-DROP POLICY IF EXISTS "Permitir leitura pública de auditoria" ON auditoria;
+CREATE OR REPLACE FUNCTION get_plantoes_vagos_48h()
+RETURNS TABLE (
+  id uuid,
+  data date,
+  hora_inicio time,
+  hora_fim time,
+  id_funcao integer,
+  id_local integer,
+  vagas integer,
+  vagas_ocupadas bigint
+) 
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT 
+    p.id,
+    p.data,
+    p.hora_inicio,
+    p.hora_fim,
+    p.id_funcao,
+    p.id_local,
+    p.vagas,
+    COALESCE(
+      (SELECT COUNT(*) 
+       FROM escalas e 
+       WHERE e.plantao_id = p.id 
+         AND e.status = 'ativo'
+      ), 0
+    ) AS vagas_ocupadas
+  FROM plantoes p
+  WHERE 
+    -- Plantões nas próximas 48 horas (hoje e amanhã)
+    p.data BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '2 days')
+    -- Que ainda têm vagas disponíveis
+    AND (
+      SELECT COUNT(*) 
+      FROM escalas e 
+      WHERE e.plantao_id = p.id 
+        AND e.status = 'ativo'
+    ) < p.vagas
+  ORDER BY p.data, p.hora_inicio;
+$$;
 
--- Criar políticas de leitura pública para todas as tabelas
-CREATE POLICY "Permitir leitura pública de profissionais"
-ON profissionais FOR SELECT
-TO authenticated
-USING (true);
+-- =============================================
+-- 2. FUNÇÃO: get_profissionais_sobrecarregados
+-- Retorna profissionais com mais de 40h na semana atual
+-- =============================================
+DROP FUNCTION IF EXISTS get_profissionais_sobrecarregados();
 
-CREATE POLICY "Permitir leitura pública de plantões"
-ON plantoes FOR SELECT
-TO authenticated
-USING (true);
+CREATE OR REPLACE FUNCTION get_profissionais_sobrecarregados()
+RETURNS TABLE (
+  nome text,
+  cargo text,
+  horas_na_semana numeric,
+  telefone text
+) 
+LANGUAGE sql
+STABLE
+AS $$
+  WITH inicio_semana AS (
+    SELECT date_trunc('week', CURRENT_DATE)::date AS inicio
+  ),
+  fim_semana AS (
+    SELECT (date_trunc('week', CURRENT_DATE) + INTERVAL '6 days')::date AS fim
+  ),
+  horas_profissional AS (
+    SELECT 
+      prof.id,
+      prof.nome,
+      prof.cargo,
+      prof.telefone,
+      SUM(
+        EXTRACT(EPOCH FROM (pl.hora_fim - pl.hora_inicio)) / 3600
+        + CASE 
+            WHEN pl.hora_fim < pl.hora_inicio THEN 24 
+            ELSE 0 
+          END
+      ) AS total_horas
+    FROM profissionais prof
+    INNER JOIN escalas e ON e.profissional_id = prof.id
+    INNER JOIN plantoes pl ON pl.id = e.plantao_id
+    CROSS JOIN inicio_semana
+    CROSS JOIN fim_semana
+    WHERE 
+      e.status = 'ativo'
+      AND pl.data BETWEEN inicio_semana.inicio AND fim_semana.fim
+    GROUP BY prof.id, prof.nome, prof.cargo, prof.telefone
+  )
+  SELECT 
+    hp.nome,
+    hp.cargo,
+    hp.total_horas::numeric(10,2) AS horas_na_semana,
+    hp.telefone
+  FROM horas_profissional hp
+  WHERE hp.total_horas > 40
+  ORDER BY hp.total_horas DESC;
+$$;
 
-CREATE POLICY "Permitir leitura pública de escalas"
-ON escalas FOR SELECT
-TO authenticated
-USING (true);
+-- =============================================
+-- 3. FUNÇÃO: get_substituicoes_pendentes
+-- Retorna substituições aguardando aprovação
+-- =============================================
+DROP FUNCTION IF EXISTS get_substituicoes_pendentes();
 
-CREATE POLICY "Permitir leitura pública de substituições"
-ON substituicoes FOR SELECT
-TO authenticated
-USING (true);
+CREATE OR REPLACE FUNCTION get_substituicoes_pendentes()
+RETURNS TABLE (
+  id uuid,
+  plantao_id uuid,
+  profissional_solicitante_nome text,
+  profissional_substituto_nome text,
+  data_plantao date,
+  hora_inicio time,
+  hora_fim time,
+  status text
+) 
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT 
+    s.id,
+    s.plantao_id,
+    ps.nome AS profissional_solicitante_nome,
+    psu.nome AS profissional_substituto_nome,
+    p.data AS data_plantao,
+    p.hora_inicio,
+    p.hora_fim,
+    s.status
+  FROM substituicoes s
+  INNER JOIN profissionais ps ON ps.id = s.profissional_solicitante_id
+  INNER JOIN profissionais psu ON psu.id = s.profissional_substituto_id
+  INNER JOIN plantoes p ON p.id = s.plantao_id
+  WHERE s.status = 'pendente'
+  ORDER BY p.data, p.hora_inicio;
+$$;
 
-CREATE POLICY "Permitir leitura pública de auditoria"
-ON auditoria FOR SELECT
-TO authenticated
-USING (true);
-
--- Políticas para INSERT, UPDATE, DELETE (para usuários autenticados)
--- Profissionais
-DROP POLICY IF EXISTS "Permitir insert de profissionais" ON profissionais;
-CREATE POLICY "Permitir insert de profissionais"
-ON profissionais FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Permitir update de profissionais" ON profissionais;
-CREATE POLICY "Permitir update de profissionais"
-ON profissionais FOR UPDATE
-TO authenticated
-USING (true);
-
--- Plantões
-DROP POLICY IF EXISTS "Permitir insert de plantões" ON plantoes;
-CREATE POLICY "Permitir insert de plantões"
-ON plantoes FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Permitir update de plantões" ON plantoes;
-CREATE POLICY "Permitir update de plantões"
-ON plantoes FOR UPDATE
-TO authenticated
-USING (true);
-
--- Escalas
-DROP POLICY IF EXISTS "Permitir insert de escalas" ON escalas;
-CREATE POLICY "Permitir insert de escalas"
-ON escalas FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Permitir update de escalas" ON escalas;
-CREATE POLICY "Permitir update de escalas"
-ON escalas FOR UPDATE
-TO authenticated
-USING (true);
-
-DROP POLICY IF EXISTS "Permitir delete de escalas" ON escalas;
-CREATE POLICY "Permitir delete de escalas"
-ON escalas FOR DELETE
-TO authenticated
-USING (true);
-
--- Substituições
-DROP POLICY IF EXISTS "Permitir insert de substituições" ON substituicoes;
-CREATE POLICY "Permitir insert de substituições"
-ON substituicoes FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Permitir update de substituições" ON substituicoes;
-CREATE POLICY "Permitir update de substituições"
-ON substituicoes FOR UPDATE
-TO authenticated
-USING (true);
-
--- Auditoria
-DROP POLICY IF EXISTS "Permitir insert de auditoria" ON auditoria;
-CREATE POLICY "Permitir insert de auditoria"
-ON auditoria FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
--- Garantir que as funções RPC possam ser executadas
+-- =============================================
+-- 4. Garantir permissões
+-- =============================================
 GRANT EXECUTE ON FUNCTION get_plantoes_vagos_48h TO authenticated;
-GRANT EXECUTE ON FUNCTION get_substituicoes_pendentes TO authenticated;
 GRANT EXECUTE ON FUNCTION get_profissionais_sobrecarregados TO authenticated;
-GRANT EXECUTE ON FUNCTION get_detalhes_substituicoes_pendentes TO authenticated;
-GRANT EXECUTE ON FUNCTION sugerir_profissionais_para_plantao TO authenticated;
-GRANT EXECUTE ON FUNCTION aprovar_substituicao TO authenticated;
-GRANT EXECUTE ON FUNCTION rejeitar_substituicao TO authenticated;
+GRANT EXECUTE ON FUNCTION get_substituicoes_pendentes TO authenticated;
+
+-- =============================================
+-- 5. Testar as funções
+-- =============================================
+-- Descomente para testar:
+-- SELECT * FROM get_plantoes_vagos_48h();
+-- SELECT * FROM get_profissionais_sobrecarregados();
+-- SELECT * FROM get_substituicoes_pendentes();

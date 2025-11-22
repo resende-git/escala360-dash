@@ -5,7 +5,7 @@
 -- 1. FUNÇÃO: get_plantoes_vagos_48h
 -- Retorna plantões que precisam de alocação nas próximas 48 horas
 -- =============================================
-DROP FUNCTION IF EXISTS get_plantoes_vagos_48h() CASCADE;
+DROP FUNCTION IF EXISTS get_plantoes_vagos_48h CASCADE;
 
 CREATE OR REPLACE FUNCTION get_plantoes_vagos_48h()
 RETURNS TABLE (
@@ -54,7 +54,7 @@ $$;
 -- 2. FUNÇÃO: get_profissionais_sobrecarregados
 -- Retorna profissionais com mais de 40h na semana atual
 -- =============================================
-DROP FUNCTION IF EXISTS get_profissionais_sobrecarregados() CASCADE;
+DROP FUNCTION IF EXISTS get_profissionais_sobrecarregados CASCADE;
 
 CREATE OR REPLACE FUNCTION get_profissionais_sobrecarregados()
 RETURNS TABLE (
@@ -109,7 +109,7 @@ $$;
 -- 3. FUNÇÃO: get_substituicoes_pendentes
 -- Retorna substituições aguardando aprovação
 -- =============================================
-DROP FUNCTION IF EXISTS get_substituicoes_pendentes() CASCADE;
+DROP FUNCTION IF EXISTS get_substituicoes_pendentes CASCADE;
 
 CREATE OR REPLACE FUNCTION get_substituicoes_pendentes()
 RETURNS TABLE (
